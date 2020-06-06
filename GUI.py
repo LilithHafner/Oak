@@ -39,9 +39,11 @@ class Cell(tk.Label):
     or 1 or -1 for synthesized true or false. 2 and -2 are failed constaints.
     2 is constrained false, but actually true.
     '''
-    def __init__(self, root, style):
+    def __init__(self, root, style, callback):
         super().__init__(root, bg='grey',borderwidth=0,padx=1,pady=1)#padx=(1 if style!=Grid_Style.TAPE else 0),pady=(1 if style!=Grid_Style.TAPE else 0))
         self.style = style
+        self.bind("<Button-1>",callback)
+        self.bind("<Button-2>",callback)
 
     def update(self, value, position=None):
         imgs = []
@@ -58,7 +60,7 @@ class Cell(tk.Label):
         else:
             raise ValueError()
 
-        if self.style in [Grid_Style.WRITE, Grid_Style.MOVE]:
+        if self.style in [Grid_Style.WRITE, Grid_Style.MOVE, Grid_Style.TAPE]:
             if abs(value) == 2:
                 imgs.append('failed_constraint_square')
             elif abs(value) == 3:
@@ -76,6 +78,8 @@ class Cell(tk.Label):
                 path = 'left_turn'
             elif position == [1,0,1]:
                 path = 'right_turn'
+            elif position[1] == 0:
+                path = 'stray_presence'
             if path is not None:
                 constrained = 'move_constrained_' if constraint == 3 else 'move_'
                 imgs.append(constrained+path)
@@ -117,12 +121,48 @@ class Grid_of_cells(tk.Frame):
         self.height = len(source[0])
         self.cells = tuple(tuple(
             self.create_cell(x, y) for y in range(self.height)) for x in range(self.width))
-        for x in range(self.width):
-            for y in range(self.height):
-                self.update_cell(x,y)
+        self.update()
   
     def create_cell(self, x, y):
-        out = Cell(self, self.style)
+        def callback(event):#There may be a better way to do this...
+            if event.num == 1 and event.state == 0:
+                if abs(self.source[x][y]) == 1:
+                    self.source[x][y] = 3
+                elif self.source[x][y] > 0:
+                    self.source[x][y] = -3
+                elif self.source[x][y] < 0:
+                    self.source[x][y] = -1#Default value
+                else:
+                    raise ValueError()
+            elif event.num == 2 and event.state == 0:
+                if abs(self.source[x][y]) == 1:
+                    self.source[x][y] = -3
+                elif self.source[x][y] < 0:
+                    self.source[x][y] = 3
+                elif self.source[x][y] > 0:
+                    self.source[x][y] = -1#Default value
+                else:
+                    raise ValueError()
+            elif event.num == 1 and event.state == 1 and self.style == Grid_Style.TAPE:
+                if abs(self.position_source[x][y]) == 1:
+                    self.position_source[x][y] = 3
+                elif self.position_source[x][y] > 0:
+                    self.position_source[x][y] = -3
+                elif self.position_source[x][y] < 0:
+                    self.position_source[x][y] = -1#Default value
+                else:
+                    raise ValueError()
+            elif event.num == 2 and event.state == 1 and self.style == Grid_Style.TAPE:
+                if abs(self.position_source[x][y]) == 1:
+                    self.position_source[x][y] = -3
+                elif self.position_source[x][y] < 0:
+                    self.position_source[x][y] = 3
+                elif self.position_source[x][y] > 0:
+                    self.position_source[x][y] = -1#Default value
+                else:
+                    raise ValueError()
+            refresh()
+        out = Cell(self, self.style, callback)
         out.grid(row=y,column=x)
         return out
     def update_cell(self, x, y):
@@ -137,7 +177,25 @@ class Grid_of_cells(tk.Frame):
                             break
             position = position, abs(self.position_source[x][y])
         self.cells[x][y].update(self.source[x][y], position = position)
-        
+
+    def update(self):
+        for x in range(self.width):
+            for y in range(self.height):
+                self.update_cell(x,y)
+
+def update_all_cells(wigit=root):
+    if isinstance(wigit, Grid_of_cells):
+        wigit.update()
+    else:
+        for child in wigit.winfo_children():
+            update_all_cells(child)
+
+def refresh():
+    hook()
+    update_all_cells()
+
+def hook():
+    print('Hook me!')
 
 from random import randint
 def random_magnitude():
@@ -149,7 +207,6 @@ def rpositions(width,height):
     for i in range(height-1):
         pos.append(max(min(width-1,pos[-1]+(randint(0,1)*2-1)),0))
     return [[random_magnitude()*(1 if pos[y]==x else -1) for y in range(height)] for x in range(width)]
-
 
 e1t = Grid_of_cells(examples, random(5,12), Grid_Style.TAPE, rpositions(5,12))
 e1t.grid(row=0,column=0)
