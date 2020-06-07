@@ -228,7 +228,6 @@ def final_mus(constraints, needed=0):
         print('fail')
     return constraints
 
-trimmed = []
 def trim_to_solluble():
     global constraints, trimmed
     while solve(constraints) == 'UNSAT':
@@ -246,73 +245,76 @@ def trim_to_solluble():
     
 
 from pycosat import solve
-trim_to_solluble()
-solve_result = solve(constraints)
-if solve_result == 'UNSAT':
-    print('No can do. That\'s impossible!')
-    print(mus(constraints))
-    solution = None
-elif solve_result == 'UNKNOWN':
-    print('Sorry bud. That\'s a stumper.')
-    solution = None
-else:
-    solution = {abs(x):x>0 for x in solve_result}
 
-def value(*identifier):
-    try:
-        return solution[Variable(*identifier)]
-    except:
-        print(identifier)
-        raise
+if __name__ == '__main__':
+    trimmed = []
+    trim_to_solluble()
+    solve_result = solve(constraints)
+    if solve_result == 'UNSAT':
+        print('No can do. That\'s impossible!')
+        print(mus(constraints))
+        solution = None
+    elif solve_result == 'UNKNOWN':
+        print('Sorry bud. That\'s a stumper.')
+        solution = None
+    else:
+        solution = {abs(x):x>0 for x in solve_result}
 
-def bits_to_int(bits):
-    return ((1 if bits[-1] else 0) + 2*bits_to_int(bits[:-1])) if bits else 0
+    def value(*identifier):
+        try:
+            return solution[Variable(*identifier)]
+        except:
+            print(identifier)
+            raise
 
-def machine_row(state, tape_character):
-    return bits_to_int([value('M', state, tape_character, 'Q', i) for i in range(log2_number_of_states)]), \
-        1 if value('M', state, tape_character, 'W') else 0, \
-        1 if value('M', state, tape_character, 'V') else -1,
+    def bits_to_int(bits):
+        return ((1 if bits[-1] else 0) + 2*bits_to_int(bits[:-1])) if bits else 0
 
-def bin_val(*identifier):
-    return '1' if value(*identifier) else '0'
+    def machine_row(state, tape_character):
+        return bits_to_int([value('M', state, tape_character, 'Q', i) for i in range(log2_number_of_states)]), \
+            1 if value('M', state, tape_character, 'W') else 0, \
+            1 if value('M', state, tape_character, 'V') else -1,
 
-def show_tape():
-    for t in range(E['time']+1):
-        print(' '.join(bin_val('T', e, t, x)  for x in range(E['memory'])))
+    def bin_val(*identifier):
+        return '1' if value(*identifier) else '0'
 
-def show():
-    for t in range(E['time']+1):
-        print(' '.join(bin_val('T', e, t, x) for x in range(E['memory'])),' | ',
-              ' '.join(bin_val('P', e, t, x) for x in range(E['memory'])),' | ',
-              ' '.join(bin_val('Q', e, t, i) for i in range(log2_number_of_states)) if True or t != E['time'] else 'N/A')
+    def show_tape():
+        for t in range(E['time']+1):
+            print(' '.join(bin_val('T', e, t, x)  for x in range(E['memory'])))
 
-    for a in [0,1]:
-        print()
-        for state in range(number_of_states):
-            print(' '.join('1' if value('M', state, a, 'Q', i) else '0' for i in range(log2_number_of_states)),' | ',
-                  '1' if value('M', state, a, 'W') else '0', ' | ', '1' if value('M', state, a, 'V') else '0')
+    def show():
+        for t in range(E['time']+1):
+            print(' '.join(bin_val('T', e, t, x) for x in range(E['memory'])),' | ',
+                  ' '.join(bin_val('P', e, t, x) for x in range(E['memory'])),' | ',
+                  ' '.join(bin_val('Q', e, t, i) for i in range(log2_number_of_states)) if True or t != E['time'] else 'N/A')
 
-Variables_to_identifiers = {variable_identifiers_to_Variables[identifier]:identifier for identifier in variable_identifiers_to_Variables}
-def identifier(variable):
-    return Variables_to_identifiers.get(variable,None)
+        for a in [0,1]:
+            print()
+            for state in range(number_of_states):
+                print(' '.join('1' if value('M', state, a, 'Q', i) else '0' for i in range(log2_number_of_states)),' | ',
+                      '1' if value('M', state, a, 'W') else '0', ' | ', '1' if value('M', state, a, 'V') else '0')
 
-def deep_identifier(constraints):
-    if isinstance(constraints, int):
-        return ('-' if constraints < 0 else '')+str(identifier(abs(constraints)))
-    return [deep_identifier(i) for i in constraints]
-    
+    Variables_to_identifiers = {variable_identifiers_to_Variables[identifier]:identifier for identifier in variable_identifiers_to_Variables}
+    def identifier(variable):
+        return Variables_to_identifiers.get(variable,None)
 
-from Turing_machine import Machine
-from sat_gen import save
-    
-if solution:
-    machine = Machine(tuple(tuple(machine_row(state, char) for char in [0,1]) for state in range(number_of_states)))
-    machine.reset(list(E['input']))
-    #machine.run()
-    machine.show()
-    print(machine.tape == E['output'])
-    print(deep_identifier(trimmed))
-    #show()
+    def deep_identifier(constraints):
+        if isinstance(constraints, int):
+            return ('-' if constraints < 0 else '')+str(identifier(abs(constraints)))
+        return [deep_identifier(i) for i in constraints]
+        
 
-else:
-    save(constraints)
+    from Turing_machine import Machine
+    from sat_gen import save
+        
+    if solution:
+        machine = Machine(tuple(tuple(machine_row(state, char) for char in [0,1]) for state in range(number_of_states)))
+        machine.reset(list(E['input']))
+        #machine.run()
+        machine.show()
+        print(machine.tape == E['output'])
+        print(deep_identifier(trimmed))
+        #show()
+
+    else:
+        save(constraints)

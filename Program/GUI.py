@@ -50,7 +50,7 @@ class Cell(tk.Label):
                 elif variable.get() > 0:
                     variable.set(-3)
                 elif variable.get() < 0:
-                    variable.set(-1)#Default value
+                    variable.set(-1)#Stay same
                 else:
                     raise ValueError()
             elif event.state == 1 and self.style == Grid_Style.TAPE:
@@ -59,7 +59,7 @@ class Cell(tk.Label):
                 elif position_variable.get() > 0:
                     position_variable.set(-3)
                 elif position_variable.get() < 0:
-                    position_variable.set(-1)#Default value
+                    position_variable.set(-1)#Stay same
                 else:
                     raise ValueError()
         def right(event):
@@ -69,7 +69,7 @@ class Cell(tk.Label):
                 elif variable.get() < 0:
                     variable.set(3)
                 elif variable.get() > 0:
-                    variable.set(-1)#Default value
+                    variable.set(1)#Stay same
                 else:
                     raise ValueError()
             elif event.state == 1 and self.style == Grid_Style.TAPE:
@@ -78,7 +78,7 @@ class Cell(tk.Label):
                 elif position_variable.get() < 0:
                     position_variable.set(3)
                 elif position_variable.get() > 0:
-                    position_variable.set(-1)#Default value
+                    position_variable.set(1)#Stay same
                 else:
                     raise ValueError()
         self.bind("<Button-1>",left)
@@ -115,8 +115,12 @@ class Cell(tk.Label):
                             if position_variables[dx+2][y] is not None and position_variables[dx+2][y].get() > 0:
                                 position[y] = dx
                                 break
-                constraint = abs(position_variables[2][1].get())##
-                
+                try:
+                    constraint = abs(position_variables[2][1].get())##
+                except:
+                    global db
+                    db = locals(), globals()
+                    raise
                 path = None
                 if position in [[1,0,-1], [1,0,0], [None,0,0], [1,0,None]]:
                     path = 'left_continue'
@@ -180,25 +184,48 @@ class Grid_of_cells(tk.Frame):
         out.grid(row=y,column=x)
         return out
 
-from random import randint
-def random_magnitude():
-    return 1 if randint(0,7) else 3 if randint(0,10) else 2
-def random(width,height):
-    return [[tk.IntVar(root,random_magnitude()*(randint(0,1)*2-1)) for i in range(height)] for j in range(width)]
-def rpositions(width,height):
-    pos = [0]
-    for i in range(height-1):
-        pos.append(max(min(width-1,pos[-1]+(randint(0,1)*2-1)),0))
-    return [[tk.IntVar(root,random_magnitude()*(1 if pos[y]==x else -1)) for y in range(height)] for x in range(width)]
+def add_example(tape, positions, states, read, write, move):
+    print('Warning: example read, write, and move are not implemented.')
+    if len(tape) != len(positions):
+        raise IndexError()
+    for i in range(len(tape)):
+        if len(tape[i]) != len(positions[i]):
+            raise IndexError()
+    Grid_of_cells(examples, tape, Grid_Style.TAPE, positions).grid(row=0,column=len(examples.winfo_children()))
+    Grid_of_cells(examples, states, Grid_Style.STATE).grid(row=0,column=len(examples.winfo_children()))
 
-e1t = Grid_of_cells(examples, random(5,12), Grid_Style.TAPE, rpositions(5,12))
-e1t.grid(row=0,column=0)
-e1s = Grid_of_cells(examples, random(3,12), Grid_Style.STATE)
-e1s.grid(row=0,column=1)
-for read in [black, white]:
-    states = Grid_of_cells(read, random(3,8), Grid_Style.STATE)
-    writes = Grid_of_cells(read, random(1,8), Grid_Style.WRITE)
-    moves = Grid_of_cells(read, random(1,8), Grid_Style.MOVE)
-    states.grid(row=0,column=0,padx=5,pady=5,sticky='')
-    writes.grid(row=0,column=1,padx=5,pady=5,sticky='')
-    moves.grid(row=0,column=2,padx=5,pady=5,sticky='')
+def add_machine(statess, writess, movess):
+    if black.winfo_children() or white.winfo_children():
+        raise ValueError()##Wrong error type
+    sides = [white,black]
+    for i in range(2):
+        Grid_of_cells(sides[i], statess[i], Grid_Style.STATE).grid(row=0,column=0,padx=5,pady=5)
+        Grid_of_cells(sides[i], [writess[i]], Grid_Style.WRITE).grid(row=0,column=1,padx=5,pady=5)
+        Grid_of_cells(sides[i], [movess[i]], Grid_Style.MOVE).grid(row=0,column=2,padx=5,pady=5)
+
+if __name__ == '__main__':
+    from random import randint
+    def random_magnitude():
+        return 1 if randint(0,7) else 3 if randint(0,10) else 2
+    def random(width,height):
+        return [[tk.IntVar(root,random_magnitude()*(randint(0,1)*2-1)) for i in range(height)] for j in range(width)]
+    def rpositions(width,height):
+        pos = [0]
+        for i in range(height-1):
+            pos.append(max(min(width-1,pos[-1]+(randint(0,1)*2-1)),0))
+        return [[tk.IntVar(root,random_magnitude()*(1 if pos[y]==x else -1)) for y in range(height)] for x in range(width)]
+
+
+    add_example(random(5,12), rpositions(5,12), random(3,12), None, None, None)
+    add_machine((random(3,8),random(3,8)), (random(1,8)[0],random(1,8)[0]), (random(1,8)[0],random(1,8)[0]))
+##    e1t = Grid_of_cells(examples, random(5,12), Grid_Style.TAPE, rpositions(5,12))
+##    e1t.grid(row=0,column=0)
+##    e1s = Grid_of_cells(examples, random(3,12), Grid_Style.STATE)
+##    e1s.grid(row=0,column=1)
+##    for read in [black, white]:
+##        states = Grid_of_cells(read, random(3,8), Grid_Style.STATE)
+##        writes = Grid_of_cells(read, random(1,8), Grid_Style.WRITE)
+##        moves = Grid_of_cells(read, random(1,8), Grid_Style.MOVE)
+##        states.grid(row=0,column=0,padx=5,pady=5,sticky='')
+##        writes.grid(row=0,column=1,padx=5,pady=5,sticky='')
+##        moves.grid(row=0,column=2,padx=5,pady=5,sticky='')
