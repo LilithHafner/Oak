@@ -3,10 +3,32 @@ import Turing_synthesis_to_SAT as engine
 from math import copysign as float_copysign
 from sys import stderr
 import clock
+print = clock.print
 
 def copysign(x, y):
     return int(float_copysign(x,y))
-gv = lambda x: GUI.tk.IntVar(GUI.root, x)
+class MyVar:#Like tkinter's, but polymorphic and without loop protection
+    def __init__(self, value):
+        self.value = value
+        self.read_traces = []
+        self.write_traces = []
+    def trace(self, mode, callback):
+        if mode == 'r':
+            self.read_traces.append(callback)
+        elif mode == 'w':
+            self.write_traces.append(callback)
+        else:
+            raise ValueError()
+    def get(self):
+        for callback in self.read_traces:
+            callback()
+        return self.value
+    def set(self, value):
+        self.value = value
+        for callback in self.write_traces:
+            callback()
+        
+gv = MyVar#lambda x: GUI.tk.IntVar(GUI.root, x)
 ev = engine.Variable
 def solve():
     clock('Engine Start')
@@ -46,11 +68,11 @@ def update(i):
                 for constraint in failed_constraints:
                     add_constraint(constraint, failed_constraints[constraint])
                 solution = solve()#Try to run with all constraints
-                if isinstance('('+solution+')', list):#If succeessfull, rejoice.
+                if isinstance('('+str(solution)+')', list):#If succeessfull, rejoice.
                     update_gui_vars(solution)
                     failed_constraints.clear()
                 else:#Otherwise, maintain the old solution.
-                    clock.print(solution, file=stderr)
+                    print(solution, file=stderr)
                     for constraint in failed_constraints:
                         remove_constraint(constraint, failed_constraints[constraint])
 
@@ -62,9 +84,9 @@ def update(i):
             if isinstance(solution, list):#If succeessfull, rejoice.
                 update_gui_vars(solution)
             else: #If fail, then flag as failed constraint, and move on.
-                clock.print(solution, file=stderr)
+                print(solution, file=stderr)
                 failed_constraints[v] = copysign(1,new)
-                pairs[i][1] = copysign(2, new)
+                pairs[i][1] = copysign(2, old_sign)
                 pairs[i][0].set(pairs[i][1])
                 remove_constraint(v, new)
 
@@ -79,7 +101,7 @@ def update(i):
     d = clock.times
     clock.clear()
 
-    clock.print('\n\
+    print('\n\
 Total:\t{:5.1f} ms\n\
 GUI:\t{:5.1f} ms\n\
 Engine:\t{:5.1f} ms\n\
@@ -96,6 +118,8 @@ def update_gui_vars(solution):
     for j in range(len(pairs)):
         constrained = abs(pairs[j][1]) > 1
         match = pairs[j][1] == copysign(pairs[j][1], solution[pairs[j][2]])
+        if abs(pairs[j][1]) == 2:
+            match = not match
         if constrained and match:
             pairs[j][1] = copysign(3, solution[pairs[j][2]])
         elif constrained and not match:
