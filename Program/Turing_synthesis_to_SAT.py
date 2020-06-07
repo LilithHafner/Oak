@@ -247,6 +247,7 @@ def trim_to_solluble():
 from pycosat import solve
 
 if __name__ == '__main__':
+    print('Run main.py for full experience')
     trimmed = []
     trim_to_solluble()
     solve_result = solve(constraints)

@@ -180,6 +180,7 @@ def add_machine(statess, writess, movess):
         Grid_of_cells(sides[i], [movess[i]], Grid_Style.MOVE).grid(row=0,column=2,padx=5,pady=5)
 
 if __name__ == '__main__':
+    print('Run main.py for full experience')
     from random import randint
     def random_magnitude():
         return 1 if randint(0,7) else 3 if randint(0,10) else 2

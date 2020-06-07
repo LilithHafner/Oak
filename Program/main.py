@@ -167,3 +167,9 @@ for e in engine.examples:
             for i in range(engine.log2_number_of_states)]
     read,write,move=[None]*3
     GUI.add_example(tape, positions, states, read, write, move)
+
+update_gui_vars(solve())
+
+import sys
+if "idlelib" not in sys.modules:
+    GUI.tk.mainloop()
