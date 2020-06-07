@@ -1,11 +1,11 @@
 # Oak
 Turing Machine Synthesis based on a SAT solver
 
-![Screenshot of unary single bit-shift being synthesized](Screenshots/View 1.png)
+![Screenshot of unary single bit-shift being synthesized](Screenshots/View 1.png?raw=true)
 
 
 
-**Status:** Usable work in progress. Capable of reasonably effective live Turing machine synthesis, but bug fixes and key features are still missing.
+**Status:** Usable work in progress. Capable of reasonably effective live Turing machine synthesis, but bug fixes and key features are still missing. Theory documents are a very rough draft and riddled with holes.
 
 
 
