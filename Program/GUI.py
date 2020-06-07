@@ -39,174 +39,157 @@ class Cell(tk.Label):
     or 1 or -1 for synthesized true or false. 2 and -2 are failed constaints.
     2 is constrained false, but actually true.
     '''
-    def __init__(self, root, style, callback):
+    def __init__(self, root, style, variable, position_variables=None):
         super().__init__(root, bg='grey',borderwidth=0,padx=1,pady=1)#padx=(1 if style!=Grid_Style.TAPE else 0),pady=(1 if style!=Grid_Style.TAPE else 0))
         self.style = style
-        self.bind("<Button-1>",callback)
-        self.bind("<Button-2>",callback)
+        position_variable = position_variables[2][1] if position_variables else None
+        def left(event):#There may be a better way to do this...
+            if event.state == 0:
+                if abs(variable.get()) == 1:
+                    variable.set(3)
+                elif variable.get() > 0:
+                    variable.set(-3)
+                elif variable.get() < 0:
+                    variable.set(-1)#Default value
+                else:
+                    raise ValueError()
+            elif event.state == 1 and self.style == Grid_Style.TAPE:
+                if abs(position_variable.get()) == 1:
+                    position_variable.set(3)
+                elif position_variable.get() > 0:
+                    position_variable.set(-3)
+                elif position_variable.get() < 0:
+                    position_variable.set(-1)#Default value
+                else:
+                    raise ValueError()
+        def right(event):
+            if event.state == 0:
+                if abs(variable.get()) == 1:
+                    variable.set(-3)
+                elif variable.get() < 0:
+                    variable.set(3)
+                elif variable.get() > 0:
+                    variable.set(-1)#Default value
+                else:
+                    raise ValueError()
+            elif event.state == 1 and self.style == Grid_Style.TAPE:
+                if abs(position_variable.get()) == 1:
+                    position_variable.set(-3)
+                elif position_variable.get() < 0:
+                    position_variable.set(3)
+                elif position_variable.get() > 0:
+                    position_variable.set(-1)#Default value
+                else:
+                    raise ValueError()
+        self.bind("<Button-1>",left)
+        self.bind("<Button-2>",right)
 
-    def update(self, value, position=None):
-        imgs = []
-        if self.style == Grid_Style.STATE:
-            imgs.append('state_1' if value > 0 else 'state_0')
-            if abs(value) == 2:
-                imgs.append('failed_constraint_rectangle')
-            elif abs(value) == 3:
-                imgs.append('constrained_rectangle')
-        elif self.style in [Grid_Style.WRITE, Grid_Style.TAPE]:
-            imgs.append('black_tape' if value > 0 else 'white_tape')
-        elif self.style == Grid_Style.MOVE:
-            imgs.append('move_right' if value > 0 else 'move_left')
-        else:
-            raise ValueError()
+        def update(*args):
+            value = variable.get()##
+            
+            imgs = []
+            if self.style == Grid_Style.STATE:
+                imgs.append('state_1' if value > 0 else 'state_0')
+                if abs(value) == 2:
+                    imgs.append('failed_constraint_rectangle')
+                elif abs(value) == 3:
+                    imgs.append('constrained_rectangle')
+            elif self.style in [Grid_Style.WRITE, Grid_Style.TAPE]:
+                imgs.append('black_tape' if value > 0 else 'white_tape')
+            elif self.style == Grid_Style.MOVE:
+                imgs.append('move_right' if value > 0 else 'move_left')
+            else:
+                raise ValueError()
 
-        if self.style in [Grid_Style.WRITE, Grid_Style.MOVE, Grid_Style.TAPE]:
-            if abs(value) == 2:
-                imgs.append('failed_constraint_square')
-            elif abs(value) == 3:
-                imgs.append('constrained_square')
+            if self.style in [Grid_Style.WRITE, Grid_Style.MOVE, Grid_Style.TAPE]:
+                if abs(value) == 2:
+                    imgs.append('failed_constraint_square')
+                elif abs(value) == 3:
+                    imgs.append('constrained_square')
 
-        if self.style == Grid_Style.TAPE:
+            if self.style == Grid_Style.TAPE:
+                position = [None, None, None]##
+                for y in range(3):
+                    if position_variables[2][y] is not None:
+                        for dx in [0, 1, -1, 2, -2]:
+                            if position_variables[dx+2][y] is not None and position_variables[dx+2][y].get() > 0:
+                                position[y] = dx
+                                break
+                constraint = abs(position_variables[2][1].get())##
+                
+                path = None
+                if position in [[1,0,-1], [1,0,0], [None,0,0], [1,0,None]]:
+                    path = 'left_continue'
+                elif position in [[-1,0,1], [0,0,1], [None,0,1]]:
+                    path = 'right_continue'
+                elif position in [[-1,0,-1], [0,0,0], [-1,0,None], [0,0,None], [-1,0,0], [0,0,-1]]:
+                    path = 'left_turn'
+                elif position == [1,0,1]:
+                    path = 'right_turn'
+                elif position[1] == 0:
+                    path = 'stray_presence'
+                if path is not None:
+                    constrained = 'move_constrained_' if constraint == 3 else 'move_'
+                    imgs.append(constrained+path)
 
-            position, constraint = position
-            path = None
-            if position in [[1,0,-1], [1,0,0], [None,0,0], [1,0,None]]:
-                path = 'left_continue'
-            elif position in [[-1,0,1], [0,0,1], [None,0,1]]:
-                path = 'right_continue'
-            elif position in [[-1,0,-1], [0,0,0], [-1,0,None], [0,0,None], [-1,0,0], [0,0,-1]]:
-                path = 'left_turn'
-            elif position == [1,0,1]:
-                path = 'right_turn'
-            elif position[1] == 0:
-                path = 'stray_presence'
-            if path is not None:
-                constrained = 'move_constrained_' if constraint == 3 else 'move_'
-                imgs.append(constrained+path)
+                if (position[0] == 0 and position[1] == -1) or position == [None,-1,-1]:
+                    imgs.append('below_move_left')
+                if position[0] == 0 and position[1] == 1:
+                    imgs.append('below_move_right')
+                if position[2] == 0 and position[1] == -1:
+                    imgs.append('above_move_right')
+                if (position[2] == 0 and position[1] == 1) or (position[2] == None and position[1] == 1):
+                    imgs.append('above_move_left')
 
-            if (position[0] == 0 and position[1] == -1) or position == [None,-1,-1]:
-                imgs.append('below_move_left')
-            if position[0] == 0 and position[1] == 1:
-                imgs.append('below_move_right')
-            if position[2] == 0 and position[1] == -1:
-                imgs.append('above_move_right')
-            if (position[2] == 0 and position[1] == 1) or (position[2] == None and position[1] == 1):
-                imgs.append('above_move_left')
-
-            if position[1] != 0 and constraint == 3:
-                imgs.append('constrained_not_move')
-            elif position[1] != 0 and constraint == 2:
-                imgs.append('move_failed_constraint')
-            elif position[1] == 0 and constraint == 2:
-                imgs.append('failed_constrained_not_move')
+                if position[1] != 0 and constraint == 3:
+                    imgs.append('constrained_not_move')
+                elif position[1] != 0 and constraint == 2:
+                    imgs.append('move_failed_constraint')
+                elif position[1] == 0 and constraint == 2:
+                    imgs.append('failed_constrained_not_move')
+            
+            self.image = ImageTk.PhotoImage(image(imgs))
+            self.configure(image=self.image)
         
-        self.image = ImageTk.PhotoImage(image(imgs))
-        self.configure(image=self.image)
+        variable.trace("w", update)
+        if self.style == Grid_Style.TAPE:
+            for column in position_variables:
+                if column is not None:
+                    for var in column:
+                        if var is not None:
+                            var.trace("w", update)
+        update()
 
 class Grid_of_cells(tk.Frame):
     '''Source is a list of lists of integers such that source[column][row]
     points to the cell's value.'''
     def __init__(self, root, source, style, position_source=None):
         super().__init__(root, bg='grey',highlightthickness=0)
-        self.source = source
-        self.position_source = position_source
-        self.style = style
-        #self.cell_aspect_ratio = .8 if style == Grid_Style.STATE else 1
-        #self.aspect_ratio = self.cell_aspect_ratio*len(source)/max(map(len,source))
-        #self.height = height
-        #self.width = self.height*self.aspect_ratio
-        #self.config(width=self.width, height=self.height)
-
-        self.width = len(source)
-        self.height = len(source[0])
-        self.cells = tuple(tuple(
-            self.create_cell(x, y) for y in range(self.height)) for x in range(self.width))
-        self.update()
-  
-    def create_cell(self, x, y):
-        def callback(event):#There may be a better way to do this...
-            if event.num == 1 and event.state == 0:
-                if abs(self.source[x][y]) == 1:
-                    self.source[x][y] = 3
-                elif self.source[x][y] > 0:
-                    self.source[x][y] = -3
-                elif self.source[x][y] < 0:
-                    self.source[x][y] = -1#Default value
-                else:
-                    raise ValueError()
-            elif event.num == 2 and event.state == 0:
-                if abs(self.source[x][y]) == 1:
-                    self.source[x][y] = -3
-                elif self.source[x][y] < 0:
-                    self.source[x][y] = 3
-                elif self.source[x][y] > 0:
-                    self.source[x][y] = -1#Default value
-                else:
-                    raise ValueError()
-            elif event.num == 1 and event.state == 1 and self.style == Grid_Style.TAPE:
-                if abs(self.position_source[x][y]) == 1:
-                    self.position_source[x][y] = 3
-                elif self.position_source[x][y] > 0:
-                    self.position_source[x][y] = -3
-                elif self.position_source[x][y] < 0:
-                    self.position_source[x][y] = -1#Default value
-                else:
-                    raise ValueError()
-            elif event.num == 2 and event.state == 1 and self.style == Grid_Style.TAPE:
-                if abs(self.position_source[x][y]) == 1:
-                    self.position_source[x][y] = -3
-                elif self.position_source[x][y] < 0:
-                    self.position_source[x][y] = 3
-                elif self.position_source[x][y] > 0:
-                    self.position_source[x][y] = -1#Default value
-                else:
-                    raise ValueError()
-            refresh()
-        out = Cell(self, self.style, callback)
+        self.cells = [[self.create_cell(x, y, style, variable, position_source)
+                       for y, variable in enumerate(column)]
+                      for x, column in enumerate(source)]
+        
+    def create_cell(self, x, y, style, variable, position_source):
+        position_variables = [[position_source[x][y]
+                if x >= 0 and x < len(position_source) and y >= 0 and y < len(position_source[x]) else None
+                for y in [y-1, y, y+1]]
+                for x in [x-2, x-1, x, x+1, x+2]] \
+            if style == Grid_Style.TAPE else None
+            
+        out = Cell(self, style, variable, position_variables)
         out.grid(row=y,column=x)
         return out
-    def update_cell(self, x, y):
-        position = None
-        if self.style == Grid_Style.TAPE:
-            position = [None, None, None]
-            for i,yi in [(0,y-1),(1,y),(2,y+1)]:
-                if yi >= 0 and yi < self.height:
-                    for dx in [0, 1, -1, 2, -2]:
-                        if x+dx >= 0 and x+dx < self.width and self.position_source[x+dx][yi] > 0:
-                            position[i] = dx
-                            break
-            position = position, abs(self.position_source[x][y])
-        self.cells[x][y].update(self.source[x][y], position = position)
-
-    def update(self):
-        for x in range(self.width):
-            for y in range(self.height):
-                self.update_cell(x,y)
-
-def update_all_cells(wigit=root):
-    if isinstance(wigit, Grid_of_cells):
-        wigit.update()
-    else:
-        for child in wigit.winfo_children():
-            update_all_cells(child)
-
-def refresh():
-    hook()
-    update_all_cells()
-
-def hook():
-    print('Hook me!')
 
 from random import randint
 def random_magnitude():
     return 1 if randint(0,7) else 3 if randint(0,10) else 2
 def random(width,height):
-    return [[random_magnitude()*(randint(0,1)*2-1) for i in range(height)] for j in range(width)]
+    return [[tk.IntVar(root,random_magnitude()*(randint(0,1)*2-1)) for i in range(height)] for j in range(width)]
 def rpositions(width,height):
     pos = [0]
     for i in range(height-1):
         pos.append(max(min(width-1,pos[-1]+(randint(0,1)*2-1)),0))
-    return [[random_magnitude()*(1 if pos[y]==x else -1) for y in range(height)] for x in range(width)]
+    return [[tk.IntVar(root,random_magnitude()*(1 if pos[y]==x else -1)) for y in range(height)] for x in range(width)]
 
 e1t = Grid_of_cells(examples, random(5,12), Grid_Style.TAPE, rpositions(5,12))
 e1t.grid(row=0,column=0)
