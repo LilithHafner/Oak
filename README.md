@@ -9,15 +9,15 @@ Turing Machine Synthesis based on a SAT solver
 
 
 
-**Dependancies** that need to be installed manually are:
+**Dependencies** that need to be installed manually are:
 
-Python 3 (Tested on 3.8.2)
+1. Python 3 (Tested on 3.8.2)
 
-Tkinter and Tk
+2. Tkinter and Tk
 
-pillow (install with `$pip3 install pillow` or similar)
+3. pillow (install with `$pip3 install pillow` or similar)
 
-pycosat (install with `$pip3 install pycosat` or similar)
+4. pycosat (install with `$pip3 install pycosat` or similar)
 
 
 
