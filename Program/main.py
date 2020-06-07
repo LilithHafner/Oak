@@ -68,11 +68,11 @@ def update(i):
                 for constraint in failed_constraints:
                     add_constraint(constraint, failed_constraints[constraint])
                 solution = solve()#Try to run with all constraints
-                if isinstance('('+str(solution)+')', list):#If succeessfull, rejoice.
+                if isinstance(solution, list):#If succeessfull, rejoice.
                     update_gui_vars(solution)
                     failed_constraints.clear()
                 else:#Otherwise, maintain the old solution.
-                    print(solution, file=stderr)
+                    print('('+str(solution)+')', file=stderr)
                     for constraint in failed_constraints:
                         remove_constraint(constraint, failed_constraints[constraint])
 

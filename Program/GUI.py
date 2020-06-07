@@ -2,6 +2,9 @@ import tkinter as tk
 from enum import Enum, auto
 from PIL import Image, ImageTk#pip3 install pillow
 from subprocess import check_output
+from math import copysign as copysign_float
+def copysign(x,y):
+    return int(copysign_float(x,y))
 
 root = tk.Tk()
 frame = tk.Frame(root, bg='grey')
@@ -42,47 +45,20 @@ class Cell(tk.Label):
     def __init__(self, root, style, variable, position_variables=None):
         super().__init__(root, bg='grey',borderwidth=0,padx=1,pady=1)#padx=(1 if style!=Grid_Style.TAPE else 0),pady=(1 if style!=Grid_Style.TAPE else 0))
         self.style = style
-        position_variable = position_variables[2][1] if position_variables else None
-        def left(event):#There may be a better way to do this...
+        
+        def change_variable(var, num):
+            if var.get() in [-1, 1]:
+                var.set(3*(3-num*2))
+            else:
+                var.set(copysign(1,var.get()))
+        def click(event):
             if event.state == 0:
-                if abs(variable.get()) == 1:
-                    variable.set(3)
-                elif variable.get() > 0:
-                    variable.set(-3)
-                elif variable.get() < 0:
-                    variable.set(-1)#Stay same
-                else:
-                    raise ValueError()
-            elif event.state == 1 and self.style == Grid_Style.TAPE:
-                if abs(position_variable.get()) == 1:
-                    position_variable.set(3)
-                elif position_variable.get() > 0:
-                    position_variable.set(-3)
-                elif position_variable.get() < 0:
-                    position_variable.set(-1)#Stay same
-                else:
-                    raise ValueError()
-        def right(event):
-            if event.state == 0:
-                if abs(variable.get()) == 1:
-                    variable.set(-3)
-                elif variable.get() < 0:
-                    variable.set(3)
-                elif variable.get() > 0:
-                    variable.set(1)#Stay same
-                else:
-                    raise ValueError()
-            elif event.state == 1 and self.style == Grid_Style.TAPE:
-                if abs(position_variable.get()) == 1:
-                    position_variable.set(-3)
-                elif position_variable.get() < 0:
-                    position_variable.set(3)
-                elif position_variable.get() > 0:
-                    position_variable.set(1)#Stay same
-                else:
-                    raise ValueError()
-        self.bind("<Button-1>",left)
-        self.bind("<Button-2>",right)
+                change_variable(variable, event.num)
+            elif event.state == 1 and position_variables:
+                change_variable(position_variables[2][1], event.num)
+                
+        self.bind("<Button-1>",click)
+        self.bind("<Button-2>",click)
 
         def update(*args):
             value = variable.get()##
