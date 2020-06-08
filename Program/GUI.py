@@ -81,6 +81,16 @@ class Cell(tk.Label):
         self.bind("<Button-1>",click)
         self.bind("<Button-2>",click)
 
+        def get_position():
+            position = [None, None, None]##
+            for y in range(3):
+                if position_variables[2][y] is not None:
+                    for dx in [0, 1, -1, 2, -2]:
+                        if position_variables[dx+2][y] is not None and position_variables[dx+2][y].get() > 0:
+                            position[y] = dx
+                            break
+            return position
+
         def update(*args):
             value = variable.get()##
             
@@ -105,13 +115,7 @@ class Cell(tk.Label):
                     imgs.append('constrained_square')
 
             if self.style == Grid_Style.TAPE:
-                position = [None, None, None]##
-                for y in range(3):
-                    if position_variables[2][y] is not None:
-                        for dx in [0, 1, -1, 2, -2]:
-                            if position_variables[dx+2][y] is not None and position_variables[dx+2][y].get() > 0:
-                                position[y] = dx
-                                break
+                position = get_position()
                 try:
                     constraint = abs(position_variables[2][1].get())##
                 except:
@@ -152,23 +156,17 @@ class Cell(tk.Label):
             self.image = ImageTk.PhotoImage(image(imgs))
             self.configure(image=self.image)
 
-        self.lazy_updated=False
-        def lazy_update():
-            self.lazy_updated=True
-        def lazy_trigger():
-            if self.lazy_updated:
+        def get_state():
+            return (variable.get(), (tuple(get_position()), position_variables[2][1].get()) if self.style == Grid_Style.TAPE else None)
+        last_state = None
+        def maybe_update():
+            nonlocal last_state
+            #print(last_state, get_state())
+            if last_state != get_state():
+                last_state = get_state()
                 update()
-                self.lazy_updated = False
-        variable.trace("w", lazy_update)
-        if self.style == Grid_Style.TAPE:
-            for column in position_variables:
-                if column is not None:
-                    for var in column:
-                        if var is not None:
-                            var.trace("w", lazy_update)
-        update()
-        
-        self.update = lazy_trigger
+            
+        self.update = maybe_update
 
 class Grid_of_cells(tk.Frame):
     '''Source is a list of lists of integers such that source[column][row]

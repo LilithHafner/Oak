@@ -158,6 +158,7 @@ for e in engine.examples:
     GUI.add_example(tape, positions, states, read, write, move)
 
 update_gui_vars(solve())
+GUI.update()
 
 import sys
 if "idlelib" not in sys.modules:
