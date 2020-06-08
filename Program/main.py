@@ -129,6 +129,7 @@ def register(engine_variable):
     pairs.append([gui_variable, gui_variable_value, engine_variable])
     return gui_variable
 
+GUI.add_instructions_panel()
 GUI.add_timer_chart(timer_variable,['GUI', 'Engine', 'Other', 'A single print statement'])
 
 statess = [[[register(ev('M',q,a,'Q',i))

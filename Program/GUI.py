@@ -1,4 +1,5 @@
 import tkinter as tk
+import tkinter.font as font
 from enum import Enum, auto
 from PIL import Image, ImageTk#pip3 install pillow
 from subprocess import check_output
@@ -28,13 +29,14 @@ class MyVar:#Like tkinter's, but polymorphic and without loop protection
             callback()
             
 root = tk.Tk()
+root.title('Oak   |   Turing Machine Synthesis')
 frame = tk.Frame(root, bg='grey')
 examples = tk.Frame(frame, bg='grey')
-examples.grid(row=0,column=1,columnspan=100)
+examples.grid(row=0,column=1,columnspan=2,sticky='s',padx=30,pady=10)
 black = tk.Frame(frame, bg='black')
-black.grid(row=1,column=1)
+black.grid(row=1,column=1,sticky='ne',padx=10,pady=10)
 white = tk.Frame(frame, bg='white')
-white.grid(row=1,column=2)
+white.grid(row=1,column=2,sticky='nw',padx=10,pady=10)
 
 frame.pack()
 
@@ -279,7 +281,77 @@ def update():
             wigit.update()
     update_r(root)
     root.update()
+
+def add_instructions_panel():
+    fr = tk.Frame(frame,bg='light grey')
+    fr.grid(column=101,row=0,rowspan=2,sticky='n')
+    def image_label(*image_id, **grid_args):
+        img = ImageTk.PhotoImage(image(image_id))
+        label = tk.Label(fr, image=img,borderwidth=0,padx=0,pady=1,bg='light grey')
+        label.image = img
+        label.grid(**grid_args)
+    def text_label(text, font_size=None, justify=None, **grid_args):
+        label = tk.Label(fr, text=text, bg='light grey')
+        if font_size is not None:
+            label.configure(font=font.Font(size=font_size))
+        if justify is not None:
+            label.configure(justify=justify)
+        label.grid(**grid_args)
     
+    text_label('Legend', font_size=30, row=0, column=0, columnspan=10)
+    image_label('black_tape', row=1, column=0)
+    image_label('white_tape', row=1, column=1)
+    text_label('The two tape cell values', row=1, column=2, columnspan=10, sticky='w')
+    image_label('move_left', row=2, column=0)
+    image_label('move_right', row=2, column=1)
+    text_label('Move left or right', row=2, column=2, columnspan=10, sticky='w')
+    image_label('state_0', row=3, column=0)
+    image_label('state_1', row=3, column=1)
+    text_label('Binary digits in the representation of a state', row=3, column=2, columnspan=10, sticky='w')
+
+    image_label('constrained_square', row=4, column=0)
+    image_label('constrained_rectangle', row=4, column=1)
+    text_label('Satisfied constraint on a value', row=4, column=2, columnspan=10, sticky='w')
+    image_label('failed_constraint_square', row=5, column=0)
+    image_label('failed_constraint_rectangle', row=5, column=1)
+    text_label('Unsatisfied constraint on a value', row=5, column=2, columnspan=10, sticky='w')
+
+    image_label('move_left_turn', row=6, column=0)
+    image_label('move_left_continue', row=6, column=1)
+    image_label('move_right_turn', row=6, column=2)
+    image_label('move_right_continue', row=6, column=3)
+    text_label('Machine movement path', row=6, column=4, columnspan=10, sticky='w')
+    
+    image_label('move_constrained_left_turn', row=7, column=0)
+    image_label('move_constrained_left_continue', row=7, column=1)
+    image_label('move_constrained_right_turn', row=7, column=2)
+    image_label('move_constrained_right_continue', row=7, column=3)
+    text_label('Satisfied constraint to be present', row=7, column=4, columnspan=10, sticky='w')
+    
+    image_label('move_left_turn', 'failed_constrained_not_move', row=8, column=0)
+    image_label('move_left_continue', 'failed_constrained_not_move', row=8, column=1)
+    image_label('move_right_turn', 'failed_constrained_not_move', row=8, column=2)
+    image_label('move_right_continue', 'failed_constrained_not_move', row=8, column=3)
+    text_label('Unsatisfied constraint to be absent', row=8, column=4, columnspan=10, sticky='w')
+
+    image_label('constrained_not_move', row=9, column=0)
+    text_label('Satisfied constraint to be absent', row=9, column=1, columnspan=10, sticky='w')
+    image_label('move_failed_constraint', row=10, column=0)
+    text_label('Unsatisfied constraint to be present', row=10, column=1, columnspan=10, sticky='w')
+    
+    text_label('Short Instructions', font_size=30, row=20, column=0, columnspan=10)
+    text_label('\
+This synthesizes Turing machines to satisfy constraints!\n\
+Almost any component can be constrained either true or false,\n\
+    or left up to the syntehsizer.\n\
+Click to constrain true, right click to constrain false.\n\
+Shift+click to constrain machine movement.\n\
+Unsatisfied constraints (red) are ignored in future\n\
+    computations until they can be satisfied.\n\
+The figure on the far left shows the time taken by various\n\
+components on a log10 scale. There is a line for\n\
+   min, max, average, most recent, Q1, Q2, and Q3.\n\
+The white lines represent total time.', justify='left', row=21, column=0, columnspan=10)
 
 if __name__ == '__main__':
     print('Run main.py for full experience')
@@ -301,6 +373,7 @@ if __name__ == '__main__':
     add_timer_chart(var,['GUI', 'Engine', 'Other'])
     root.update()
     var.set([3,.8,1,1.2,1.5])
+    update()
 ##    e1t = Grid_of_cells(examples, random(5,12), Grid_Style.TAPE, rpositions(5,12))
 ##    e1t.grid(row=0,column=0)
 ##    e1s = Grid_of_cells(examples, random(3,12), Grid_Style.STATE)
