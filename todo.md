@@ -18,3 +18,7 @@ Functionality (framework for these improvements already in place)
 
 - Allow adding and removing examples, resizing examples
 - Support dead examples
+
+Graphics
+
+- Support dynamic resizing

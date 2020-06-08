@@ -4,7 +4,7 @@ times = {}
 print_time, print_count = 0,0
     
 def __call__(identifier):
-    times[identifier]=time()
+    times[identifier] = time()+times.get(identifier,0)
 def difference(start, stop):
     now = time()
     return times.get(stop,now)-times.get(start,now)
