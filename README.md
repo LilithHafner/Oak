@@ -1,7 +1,7 @@
 # Oak
 Turing Machine Synthesis based on a SAT solver
 
-![Screenshot of unary single bit-shift being synthesized](Screenshots/View_2.jpg)
+![Screenshot of unary single bit-shift being synthesized](Screenshots/View_3.jpg)
 
 
 

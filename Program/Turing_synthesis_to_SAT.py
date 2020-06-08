@@ -1,3 +1,4 @@
+import pycosat
 
 #Notation
 # [(a, -b, c), (-d, c)] means
@@ -10,6 +11,9 @@ variable_identifiers_to_Variables = {}#Variable is implemented as int, as is con
 __variable_identifier_counter = 0
 def Variable(*identifier):
     global __variable_identifier_counter
+
+    if identifier == ('P', 'first', 7, 8):
+        raise ValueError()
     
     if identifier == (None,):
         __variable_identifier_counter += 1
@@ -181,7 +185,7 @@ for e in examples:#e is the identifier (e.g Variable('P', e, t, x))
     
     #Constraints on proper machine movement
     for t in range(E['time']):
-        for x in range(E['memory']):
+        for x in range(E['memory']-1):
             constraints += [
                 #If we are here and move right, we need to get there
                 implies((Variable('P',e,t,x),  Variable('V',e,t)), (Variable('P', e,t+1,x+1),)),
@@ -244,7 +248,42 @@ def trim_to_solluble():
     trimmed = [i for i in trimmed if i not in untrimmed]
     
 
-from pycosat import solve
+class Solution():
+    def __init__(self, clauses):
+        self.i = -1
+        self.sol_iter = pycosat.itersolve(clauses)
+        self.cache = []
+    def compute(self, target):
+        while target >= len(self.cache):
+            self.cache.append(self.sol_iter.__next__())
+    def next(self):
+        self.i += 1
+        self.compute(self.i)
+        return self.cache[self.i]
+    def has_next(self):
+        try:
+            self.compute(self.i+1)
+        except StopIteration:
+            return False
+        return True
+    def previous(self):
+        self.i -= 1
+        return self.cache[self.i]
+    def has_previous(self):
+        return self.i > 0
+    
+def solve(clauses):
+    global solution
+    solution = Solution(clauses)
+    if solution.has_next():
+        return solution.next()
+    else:
+        return 'UNSAT or UNKNOWN'
+    
+
+Variables_to_identifiers = {variable_identifiers_to_Variables[identifier]:identifier for identifier in variable_identifiers_to_Variables}
+def identifier(variable):
+    return Variables_to_identifiers.get(variable,None)
 
 if __name__ == '__main__':
     print('Run main.py for full experience')
@@ -295,9 +334,7 @@ if __name__ == '__main__':
                 print(' '.join('1' if value('M', state, a, 'Q', i) else '0' for i in range(log2_number_of_states)),' | ',
                       '1' if value('M', state, a, 'W') else '0', ' | ', '1' if value('M', state, a, 'V') else '0')
 
-    Variables_to_identifiers = {variable_identifiers_to_Variables[identifier]:identifier for identifier in variable_identifiers_to_Variables}
-    def identifier(variable):
-        return Variables_to_identifiers.get(variable,None)
+    
 
     def deep_identifier(constraints):
         if isinstance(constraints, int):

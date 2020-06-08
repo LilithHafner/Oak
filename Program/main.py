@@ -13,6 +13,36 @@ def copysign(x, y):
 gv = GUI.MyVar#lambda x: GUI.tk.IntVar(GUI.root, x)
 ev = engine.Variable
 timer_variable = gv()
+
+def next_solution():#Untimed
+    switch_solution_update(engine.solution.next())
+def previous_solution():#Untimed
+    switch_solution_update(engine.solution.previous())
+
+def big_next_solution():#Untimed
+    solution = engine.solution.next()
+    while not semantically_different_from_old_solution(solution) and engine.solution.has_next():
+        solution = engine.solution.next()
+    switch_solution_update(solution)
+def big_previous_solution():#Untimed
+    solution = engine.solution.previous()
+    while not semantically_different_from_old_solution(solution) and engine.solution.has_previous():
+        solution = engine.solution.previous()
+    switch_solution_update(solution)
+    
+last_solution = None
+def semantically_different_from_old_solution(solution):
+    for old,new in zip(last_solution,solution):
+        if old != new:
+            identifier = engine.identifier(old)
+            if identifier is not None and identifier[0] not in ['M','Q']:
+                return True
+    return False
+def switch_solution_update(solution):
+    update_gui_vars(solution)
+    GUI.update()
+set_next_solution_switch_active = GUI.add_solution_selectors(big_previous_solution,big_next_solution,previous_solution,next_solution)
+
 def solve():
     clock('Engine Start')
     out = engine.solve(engine.constraints)
@@ -102,6 +132,10 @@ def update(i):
 ##    clock.average_print_time()*1000))
                 
 def update_gui_vars(solution):
+    global last_solution
+    last_solution = solution
+    set_next_solution_switch_active(*(engine.solution.has_previous(), engine.solution.has_next())*2)
+    
     solution = {abs(x):x for x in solution}
     for j in range(len(pairs)):
         constrained = abs(pairs[j][1]) > 1

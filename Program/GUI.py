@@ -33,20 +33,37 @@ root.title('Oak   |   Turing Machine Synthesis')
 frame = tk.Frame(root, bg='grey')
 examples = tk.Frame(frame, bg='grey')
 tk.Label(frame,text='Examples',bg='grey',font=font.Font(size=30)).grid(row=0,column=1,columnspan=4)
-examples.grid(row=1,column=1,columnspan=4,sticky='s',padx=30,pady=10)
+examples.grid(row=1,column=1,columnspan=4,padx=30,pady=10)
 tk.Label(frame,text='Machine',bg='grey',font=font.Font(size=30)).grid(row=2,column=1,columnspan=4)
 black = tk.Frame(frame, bg='black')
-black.grid(row=3,column=1,sticky='ne',padx=10,pady=10)
+black.grid(row=3,column=1,rowspan=4,padx=10,pady=10)
 white = tk.Frame(frame, bg='white')
-white.grid(row=3,column=2,sticky='nw',padx=10,pady=10)
-for rt,name,fg,bg in [[black,'Black','white','black'],[white,'White','black','white']]:    
-    tk.Label(rt,text='When read '+name,fg=fg,bg=bg).grid(row=0,column=0,columnspan=4)
-    tk.Label(rt,text='From\nstate',fg=fg,bg=bg).grid(row=1,column=0,columnspan=1)
-    tk.Label(rt,text='00\n01\n10\n11',font=font.Font(size=30),fg=fg,bg=bg).grid(row=2,column=0,columnspan=1)
-    tk.Label(rt,text='To\nstate',fg=fg,bg=bg).grid(row=1,column=1,columnspan=1)
-    tk.Label(rt,text='Write',fg=fg,bg=bg).grid(row=1,column=2,columnspan=1)
-    tk.Label(rt,text='Move',fg=fg,bg=bg).grid(row=1,column=3,columnspan=1)
-    
+white.grid(row=3,column=2,rowspan=4,padx=10,pady=10)
+for white,White,fg,bg in [[black,'Black','white','black'],[white,'White','black','white']]:    
+    tk.Label(white,text='When read '+White,fg=fg,bg=bg).grid(row=0,column=0,columnspan=4)
+    tk.Label(white,text='From\nstate',fg=fg,bg=bg).grid(row=1,column=0)
+    tk.Label(white,text='00\n01\n10\n'+chr(8942),font=font.Font(size=30),fg=fg,bg=bg).grid(row=2,column=0,sticky='n')
+    tk.Label(white,text='To\nstate',fg=fg,bg=bg).grid(row=1,column=1)
+    tk.Label(white,text='Write',fg=fg,bg=bg).grid(row=1,column=2)
+    tk.Label(white,text='Move',fg=fg,bg=bg).grid(row=1,column=3)
+
+def add_solution_selectors(*commands):
+    buttons = []
+    buttons.append(tk.Button(frame,text='/ Previous\n\\ Solution',justify='left',bg='grey',command=commands[0]))
+    buttons.append(tk.Button(frame,text='Next \\\n Solution /',justify='right',bg='grey',command=commands[1]))
+    buttons.append(tk.Button(frame,text='/ Previous\n\\ Solution',justify='left',bg='grey',command=commands[2]))
+    buttons.append(tk.Button(frame,text='Next \\\n Solution /',justify='right',bg='grey',command=commands[3]))
+    tk.Label(frame,text='Semantic Change',bg='grey').grid(row=3,column=3,columnspan=2,sticky='s')
+    buttons[0].grid(row=4,column=3,sticky='n')
+    buttons[1].grid(row=4,column=4,padx=10,sticky='n')
+    tk.Label(frame,text='Snytactic Change',bg='grey').grid(row=5,column=3,columnspan=2,sticky='s')
+    buttons[2].grid(row=6,column=3,sticky='n')
+    buttons[3].grid(row=6,column=4,padx=10,sticky='n')
+    def set_active(*active):
+        for a,b in zip(active,buttons):
+            b.configure(state='normal' if a else 'disabled')
+    return set_active
+
 ##tk.Label(black,text='When read Black',fg='white',bg='black').grid(row=0,column=0,columnspan=4)
 ##tk.Label(black,text='From\nstate',fg='white',bg='black').grid(row=1,column=0,columnspan=1)
 ##tk.Label(black,text='To\nstate',fg='white',bg='black').grid(row=1,column=1,columnspan=1)
@@ -304,7 +321,7 @@ def update():
 
 def add_instructions_panel():
     fr = tk.Frame(frame,bg='light grey')
-    fr.grid(column=101,row=0,rowspan=100,sticky='n')
+    fr.grid(column=101,row=0,rowspan=7,sticky='n')
     def image_label(*image_id, **grid_args):
         img = ImageTk.PhotoImage(image(image_id))
         label = tk.Label(fr, image=img,borderwidth=0,padx=0,pady=1,bg='light grey')
@@ -373,11 +390,16 @@ Click to constrain true, right click to constrain false.\n\n\
 Shift+click to constrain machine movement.\n\n\
 Unsatisfied constraints (red) are ignored in future\n\
 computations until they can be satisfied.\n\n\n\
-The figure on the far left shows the time taken by various\n\
-components on a log10 scale. There is a line for\n\
-min, max, average, most recent, Q1, Q2, and Q3.\n\
-The white lines represent total time.', justify='left', row=21, column=0, columnspan=10)
-
+There are often many solutions. You may cycle through them\n\
+with the buttons on the botom right. "Semantic change"\n\
+referrs to a change in machine opperation on the given\n\
+examples while a "Syntactic change" may simply alter the\n\
+internal workings of the machine.', justify='left', row=21, column=0, columnspan=10)
+##\n\n\n\
+##The figure on the far left shows the time taken by various\n\
+##components on a log10 scale. There is a line for\n\
+##min, max, average, most recent, Q1, Q2, and Q3.\n\
+##The white lines represent total time.
 if __name__ == '__main__':
     print('Run main.py for full experience')
     from random import randint
@@ -392,8 +414,10 @@ if __name__ == '__main__':
         return [[tk.IntVar(root,random_magnitude()*(1 if pos[y]==x else -1)) for y in range(height)] for x in range(width)]
 
 
-    add_example(random(5,12), rpositions(5,12), random(3,12), None, None, None)
+    add_example(random(5,7), rpositions(5,7), random(3,7), None, None, None)
     add_machine((random(3,8),random(3,8)), (random(1,8)[0],random(1,8)[0]), (random(1,8)[0],random(1,8)[0]))
+    add_solution_selectors(*[print]*4)
+    add_instructions_panel()
     var = MyVar()
     add_timer_chart(var,['GUI', 'Engine', 'Other'])
     root.update()
