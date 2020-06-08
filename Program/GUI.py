@@ -32,11 +32,31 @@ root = tk.Tk()
 root.title('Oak   |   Turing Machine Synthesis')
 frame = tk.Frame(root, bg='grey')
 examples = tk.Frame(frame, bg='grey')
-examples.grid(row=0,column=1,columnspan=2,sticky='s',padx=30,pady=10)
+tk.Label(frame,text='Examples',bg='grey',font=font.Font(size=30)).grid(row=0,column=1,columnspan=4)
+examples.grid(row=1,column=1,columnspan=4,sticky='s',padx=30,pady=10)
+tk.Label(frame,text='Machine',bg='grey',font=font.Font(size=30)).grid(row=2,column=1,columnspan=4)
 black = tk.Frame(frame, bg='black')
-black.grid(row=1,column=1,sticky='ne',padx=10,pady=10)
+black.grid(row=3,column=1,sticky='ne',padx=10,pady=10)
 white = tk.Frame(frame, bg='white')
-white.grid(row=1,column=2,sticky='nw',padx=10,pady=10)
+white.grid(row=3,column=2,sticky='nw',padx=10,pady=10)
+for rt,name,fg,bg in [[black,'Black','white','black'],[white,'White','black','white']]:    
+    tk.Label(rt,text='When read '+name,fg=fg,bg=bg).grid(row=0,column=0,columnspan=4)
+    tk.Label(rt,text='From\nstate',fg=fg,bg=bg).grid(row=1,column=0,columnspan=1)
+    tk.Label(rt,text='00\n01\n10\n11',font=font.Font(size=30),fg=fg,bg=bg).grid(row=2,column=0,columnspan=1)
+    tk.Label(rt,text='To\nstate',fg=fg,bg=bg).grid(row=1,column=1,columnspan=1)
+    tk.Label(rt,text='Write',fg=fg,bg=bg).grid(row=1,column=2,columnspan=1)
+    tk.Label(rt,text='Move',fg=fg,bg=bg).grid(row=1,column=3,columnspan=1)
+    
+##tk.Label(black,text='When read Black',fg='white',bg='black').grid(row=0,column=0,columnspan=4)
+##tk.Label(black,text='From\nstate',fg='white',bg='black').grid(row=1,column=0,columnspan=1)
+##tk.Label(black,text='To\nstate',fg='white',bg='black').grid(row=1,column=1,columnspan=1)
+##tk.Label(black,text='Write',fg='white',bg='black').grid(row=1,column=2,columnspan=1)
+##tk.Label(black,text='Move',fg='white',bg='black').grid(row=1,column=3,columnspan=1)
+##tk.Label(white,text='When read White',fg='black',bg='white').grid(row=0,column=0,columnspan=4)
+##tk.Label(black,text='From\nstate\n00\n01\n10\b11',fg='black',bg='white').grid(row=1,column=0,columnspan=1,rowspan=2)
+##tk.Label(black,text='To\nstate',fg='black',bg='white').grid(row=1,column=1,columnspan=1)
+##tk.Label(black,text='Write',fg='black',bg='white').grid(row=1,column=2,columnspan=1)
+##tk.Label(black,text='Move',fg='black',bg='white').grid(row=1,column=3,columnspan=1)
 
 frame.pack()
 
@@ -206,13 +226,13 @@ def add_example(tape, positions, states, read, write, move):
     Grid_of_cells(examples, states, Grid_Style.STATE).grid(row=0,column=len(examples.winfo_children()))
 
 def add_machine(statess, writess, movess):
-    if black.winfo_children() or white.winfo_children():
+    if len(black.winfo_children() + white.winfo_children()) > 20:
         raise ValueError()##Wrong error type
     sides = [white,black]
     for i in range(2):
-        Grid_of_cells(sides[i], statess[i], Grid_Style.STATE).grid(row=0,column=0,padx=5,pady=5)
-        Grid_of_cells(sides[i], [writess[i]], Grid_Style.WRITE).grid(row=0,column=1,padx=5,pady=5)
-        Grid_of_cells(sides[i], [movess[i]], Grid_Style.MOVE).grid(row=0,column=2,padx=5,pady=5)
+        Grid_of_cells(sides[i], statess[i], Grid_Style.STATE).grid(row=2,column=1,padx=5,pady=5)
+        Grid_of_cells(sides[i], [writess[i]], Grid_Style.WRITE).grid(row=2,column=2,padx=5,pady=5)
+        Grid_of_cells(sides[i], [movess[i]], Grid_Style.MOVE).grid(row=2,column=3,padx=5,pady=5)
 
 class Multi_bar_chart(tk.Canvas):
     def __init__(self, root, variable, names, min_val, max_val, conversion=log10):
@@ -270,7 +290,7 @@ class Multi_bar_chart(tk.Canvas):
             
 
 def add_timer_chart(variable, names):
-    Multi_bar_chart(frame, variable, names, -5.5, 1.5).grid(row=0,column=0,rowspan=2,sticky='ns')
+    Multi_bar_chart(frame, variable, names, -5.5, 1.5).grid(row=0,column=0,rowspan=100,sticky='ns')
 
 def update():
     def update_r(wigit):
@@ -284,7 +304,7 @@ def update():
 
 def add_instructions_panel():
     fr = tk.Frame(frame,bg='light grey')
-    fr.grid(column=101,row=0,rowspan=2,sticky='n')
+    fr.grid(column=101,row=0,rowspan=100,sticky='n')
     def image_label(*image_id, **grid_args):
         img = ImageTk.PhotoImage(image(image_id))
         label = tk.Label(fr, image=img,borderwidth=0,padx=0,pady=1,bg='light grey')
@@ -341,16 +361,21 @@ def add_instructions_panel():
     
     text_label('Short Instructions', font_size=30, row=20, column=0, columnspan=10)
     text_label('\
-This synthesizes Turing machines to satisfy constraints!\n\
+This synthesizes Turing machines to satisfy constraints!\n\n\
+The top panel(s) show the synthesized machine running on\n\
+example(s), with time on the vertical axis, and position\n\
+on the horizontal axis. The pair of bottom panels shows\n\
+the machine\'s transition table, with the starting state\n\
+on the vertical axis.\n\n\n\
 Almost any component can be constrained either true or false,\n\
-    or left up to the syntehsizer.\n\
-Click to constrain true, right click to constrain false.\n\
-Shift+click to constrain machine movement.\n\
+or left up to the syntehsizer.\n\n\
+Click to constrain true, right click to constrain false.\n\n\
+Shift+click to constrain machine movement.\n\n\
 Unsatisfied constraints (red) are ignored in future\n\
-    computations until they can be satisfied.\n\
+computations until they can be satisfied.\n\n\n\
 The figure on the far left shows the time taken by various\n\
 components on a log10 scale. There is a line for\n\
-   min, max, average, most recent, Q1, Q2, and Q3.\n\
+min, max, average, most recent, Q1, Q2, and Q3.\n\
 The white lines represent total time.', justify='left', row=21, column=0, columnspan=10)
 
 if __name__ == '__main__':
