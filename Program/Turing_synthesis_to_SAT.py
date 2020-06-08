@@ -11,9 +11,6 @@ variable_identifiers_to_Variables = {}#Variable is implemented as int, as is con
 __variable_identifier_counter = 0
 def Variable(*identifier):
     global __variable_identifier_counter
-
-    if identifier == ('P', 'first', 7, 8):
-        raise ValueError()
     
     if identifier == (None,):
         __variable_identifier_counter += 1
@@ -62,14 +59,14 @@ def multi_equal(rest_of_conjunction, equalities_to_be_satisfied):
 
 
 #Specification
-log2_number_of_states = 2 # log base 2 of the number of states (must be an integer)
+log2_number_of_states = 3 # log base 2 of the number of states (must be an integer)
 number_of_states = 2**log2_number_of_states # the number of states
 ##examples = {'2->1':{'memory':3, 'time':6, 'input':[1,1], 'output':[1]},
 ##            #'3->1':{'memory':5, 'time':10, 'input':[1,1,1], 'output':[1]},
 ##            '4->2':{'memory':5, 'time':10, 'input':[1,1,1,1], 'output':[1,1]},
 ##            #'5->2':{'memory':5, 'time':10, 'input':[1,1,1,1,1], 'output':[1,1]},
 ##            '6->3':{'memory':7, 'time':15, 'input':[1,1,1,1,1,1], 'output':[1,1,1]}}
-examples = {'first':{'memory':8, 'time':10, 'input':[1,1,1,1,1,1], 'output':[0,1,1,1,1,1,1]}}
+examples = {'first':{'memory':10, 'time':12, 'input':[1,1,1,1,1,1,1,1], 'output':[0,1,1,1,1,1,1,1,1]}}
 
 
 
@@ -274,9 +271,10 @@ class Solution():
     
 def solve(clauses):
     global solution
-    solution = Solution(clauses)
-    if solution.has_next():
-        return solution.next()
+    s = Solution(clauses)
+    if s.has_next():
+        solution = s
+        return s.next()
     else:
         return 'UNSAT or UNKNOWN'
     

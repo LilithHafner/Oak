@@ -32,18 +32,18 @@ root = tk.Tk()
 root.title('Oak   |   Turing Machine Synthesis')
 frame = tk.Frame(root, bg='grey')
 examples = tk.Frame(frame, bg='grey')
-tk.Label(frame,text='Examples',bg='grey',font=font.Font(size=30)).grid(row=0,column=1,columnspan=4)
-examples.grid(row=1,column=1,columnspan=4,padx=30,pady=10)
-tk.Label(frame,text='Machine',bg='grey',font=font.Font(size=30)).grid(row=2,column=1,columnspan=4)
+tk.Label(frame,text='Examples',bg='grey',font=font.Font(size=20)).grid(row=0,column=1,columnspan=4)
+examples.grid(row=1,column=1,columnspan=4,padx=30)
+tk.Label(frame,text='Transition Table',bg='grey',font=font.Font(size=20)).grid(row=2,column=1,columnspan=2,pady=(10,0))
 black = tk.Frame(frame, bg='black')
-black.grid(row=3,column=1,rowspan=4,padx=10,pady=10)
+black.grid(row=3,column=1,rowspan=4,padx=10,pady=(0,10))
 white = tk.Frame(frame, bg='white')
-white.grid(row=3,column=2,rowspan=4,padx=10,pady=10)
+white.grid(row=3,column=2,rowspan=4,padx=10,pady=(0,10))
 for white,White,fg,bg in [[black,'Black','white','black'],[white,'White','black','white']]:    
     tk.Label(white,text='When read '+White,fg=fg,bg=bg).grid(row=0,column=0,columnspan=4)
-    tk.Label(white,text='From\nstate',fg=fg,bg=bg).grid(row=1,column=0)
-    tk.Label(white,text='00\n01\n10\n'+chr(8942),font=font.Font(size=30),fg=fg,bg=bg).grid(row=2,column=0,sticky='n')
-    tk.Label(white,text='To\nstate',fg=fg,bg=bg).grid(row=1,column=1)
+    tk.Label(white,text='From state',fg=fg,bg=bg).grid(row=1,column=0)
+    tk.Label(white,text='000\n001\n010\n'+chr(8942),font=font.Font(size=28),fg=fg,bg=bg).grid(row=2,column=0,sticky='n')
+    tk.Label(white,text='To state',fg=fg,bg=bg).grid(row=1,column=1)
     tk.Label(white,text='Write',fg=fg,bg=bg).grid(row=1,column=2)
     tk.Label(white,text='Move',fg=fg,bg=bg).grid(row=1,column=3)
 
@@ -75,7 +75,7 @@ def add_solution_selectors(*commands):
 ##tk.Label(black,text='Write',fg='black',bg='white').grid(row=1,column=2,columnspan=1)
 ##tk.Label(black,text='Move',fg='black',bg='white').grid(row=1,column=3,columnspan=1)
 
-frame.pack()
+frame.grid()
 
 image_path = 'gui_icons'
 images = {
@@ -247,9 +247,9 @@ def add_machine(statess, writess, movess):
         raise ValueError()##Wrong error type
     sides = [white,black]
     for i in range(2):
-        Grid_of_cells(sides[i], statess[i], Grid_Style.STATE).grid(row=2,column=1,padx=5,pady=5)
-        Grid_of_cells(sides[i], [writess[i]], Grid_Style.WRITE).grid(row=2,column=2,padx=5,pady=5)
-        Grid_of_cells(sides[i], [movess[i]], Grid_Style.MOVE).grid(row=2,column=3,padx=5,pady=5)
+        Grid_of_cells(sides[i], statess[i], Grid_Style.STATE).grid(row=2,column=1,padx=(0,5),pady=(0,10))
+        Grid_of_cells(sides[i], [writess[i]], Grid_Style.WRITE).grid(row=2,column=2,padx=5,pady=(0,10))
+        Grid_of_cells(sides[i], [movess[i]], Grid_Style.MOVE).grid(row=2,column=3,padx=(5,10),pady=(0,10))
 
 class Multi_bar_chart(tk.Canvas):
     def __init__(self, root, variable, names, min_val, max_val, conversion=log10):
@@ -321,7 +321,7 @@ def update():
 
 def add_instructions_panel():
     fr = tk.Frame(frame,bg='light grey')
-    fr.grid(column=101,row=0,rowspan=7,sticky='n')
+    fr.grid(column=101,row=0,rowspan=7,sticky='ns')
     def image_label(*image_id, **grid_args):
         img = ImageTk.PhotoImage(image(image_id))
         label = tk.Label(fr, image=img,borderwidth=0,padx=0,pady=1,bg='light grey')
@@ -384,8 +384,8 @@ example(s), with time on the vertical axis, and position\n\
 on the horizontal axis. The pair of bottom panels shows\n\
 the machine\'s transition table, with the starting state\n\
 on the vertical axis.\n\n\n\
-Almost any component can be constrained either true or false,\n\
-or left up to the syntehsizer.\n\n\
+Almost any component can be constrained either true or\n\
+false, or left up to the syntehsizer.\n\n\
 Click to constrain true, right click to constrain false.\n\n\
 Shift+click to constrain machine movement.\n\n\
 Unsatisfied constraints (red) are ignored in future\n\
