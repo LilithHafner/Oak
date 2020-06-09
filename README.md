@@ -1,24 +1,19 @@
 # Oak
+# Turing
+
 Turing Machine Synthesis based on a SAT solver
 
 ![Screenshot of unary single bit-shift being synthesized](Screenshots/View_3.jpg)
 
 
 
-**Status:** Usable work in progress. Capable of reasonably effective live Turing machine synthesis, but bug fixes and key features are still missing. Theory documents are a very rough draft and riddled with holes.
+**Status:** Complete. Capable of live Turing machine synthesis. Note: this is a research tool, and a precursor to a more complete system which operates on a different language. The theory document is a very rough draft and riddled with holes, and the GUI does not support all features allowed for my the theory and supported by the engine. Notably missing are the ability to live and dynamically add or remove examples, adjust example sizes, and change the number of states.
 
 
 
-**Dependencies** that need to be installed manually are:
+**Setup:** 
 
-1. Python 3 (Tested on 3.8.2)
-
-2. Tkinter and Tk
-
-3. pillow (install with `$pip3 install pillow` or similar)
-
-4. pycosat (install with `$pip3 install pycosat` or similar)
-
-
-
-**Run** with `$cd Program`, and `$python3 main.py`, or execute main.py from IDLE
+1. `$pip install pillow` 
+4. `$pip install pycosat`
+3. `$cd Turing/Program`
+4. `$python3 main.py`
