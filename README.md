@@ -3,7 +3,7 @@
 
 Turing Machine Synthesis based on a SAT solver
 
-![Screenshot of unary single bit-shift being synthesized](Screenshots/View_3.jpg)
+![Screenshot of unary single bit-shift being synthesized](Turing/Screenshots/Final_View.jpg)
 
 
 
