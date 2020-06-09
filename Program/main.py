@@ -1,15 +1,18 @@
 import GUI
-import Turing_synthesis_to_SAT as engine
+import engine
 from math import copysign as float_copysign
 from sys import stderr
 import clock
 print = clock.print
-
 print('Welcome!')
-
+print('Warning: example read, write, and move are not implemented.')
 def copysign(x, y):
     return int(float_copysign(x,y))
-        
+
+engine.number_of_states = 6
+engine.examples = {'first':{'memory':4, 'time':6},'second':{'memory':11,'time':10}}
+engine.create_constraints()
+  
 gv = GUI.MyVar#lambda x: GUI.tk.IntVar(GUI.root, x)
 ev = engine.Variable
 timer_variable = gv()
@@ -48,15 +51,22 @@ def solve():
     out = engine.solve(engine.constraints)
     clock('Engine End')
     return out
-def add_constraint(engine_variable, sign):
+def add_engine_constraint(engine_variable, sign):
     if (copysign(engine_variable, sign),) in engine.constraints:
         raise ValueError('Duplicate')
     if (copysign(engine_variable, -sign),) in engine.constraints:
         raise ValueError('Direct Contradiction')
     engine.constraints.append((copysign(engine_variable, sign),))
-def remove_constraint(engine_variable, sign):
+def remove_engine_constraint(engine_variable, sign):
     engine.constraints.remove((copysign(engine_variable, sign),))
-
+def add_starting_constraint(engine_variable, sign):
+    add_engine_constraint(engine_variable, sign)
+    for pair in pairs:
+        if pair[2] == engine_variable:
+            pair[1] = sign*3
+            pair[0].set(sign*3)
+            return
+    raise LookupError()
 
 #pairs[i] = [gui variable, old gui variable, engine variable]
 pairs = []
@@ -67,7 +77,7 @@ def update(i):
     new, old = ([None, 0, 1, 1, -1, -1, 0][i] for i in [pairs[i][0].get(), pairs[i][1]])
     if new == old:
         return
-    clock('Update Start')#This needs to come the filter so that false alarms don't mess with the timer
+    clock('Update Start')#This needs to come after the filter so that false alarms don't mess with the timer
     old_sign = copysign(1,pairs[i][1])
     pairs[i][1] = pairs[i][0].get()
 
@@ -76,10 +86,10 @@ def update(i):
         if v in failed_constraints:#If it was a failed constraint,
             del failed_constraints[v]#Note its removal, and move on.
         else:
-            remove_constraint(v, old)
+            remove_engine_constraint(v, old)
             if failed_constraints:#If some constraints have failed,
                 for constraint in failed_constraints:
-                    add_constraint(constraint, failed_constraints[constraint])
+                    add_engine_constraint(constraint, failed_constraints[constraint])
                 solution = solve()#Try to run with all constraints
                 if isinstance(solution, list):#If succeessfull, rejoice.
                     update_gui_vars(solution)
@@ -87,10 +97,10 @@ def update(i):
                 else:#Otherwise, maintain the old solution.
                     #print('('+str(solution)+')', file=stderr)
                     for constraint in failed_constraints:
-                        remove_constraint(constraint, failed_constraints[constraint])
+                        remove_engine_constraint(constraint, failed_constraints[constraint])
     if new != 0:#Update constraints to reflect introduced constraint
     #(a reversed constraint is modeled as a removal and then an introduction)
-        add_constraint(v, new)
+        add_engine_constraint(v, new)
         if old_sign != new:#If this breaks current solution
             solution = solve()#Try to run
             if isinstance(solution, list):#If succeessfull, rejoice.
@@ -100,7 +110,7 @@ def update(i):
                 failed_constraints[v] = copysign(1,new)
                 pairs[i][1] = copysign(2, old_sign)
                 pairs[i][0].set(pairs[i][1])
-                remove_constraint(v, new)
+                remove_engine_constraint(v, new)
     clock('Update -> GUI')
     GUI.update()
     clock('GUI End')
@@ -149,8 +159,10 @@ def update_gui_vars(solution):
         else:
             pairs[j][1] = copysign(1, solution[pairs[j][2]])
         pairs[j][0].set(pairs[j][1])
+
+
         
-    
+
 def register(engine_variable):
     positive = (engine_variable,) in engine.constraints
     negative = (-engine_variable,) in engine.constraints
@@ -163,23 +175,20 @@ def register(engine_variable):
     pairs.append([gui_variable, gui_variable_value, engine_variable])
     return gui_variable
 
-GUI.add_instructions_panel()
-GUI.add_timer_chart(timer_variable,['GUI', 'Engine', 'Other', 'A single print statement'])
 
-statess = [[[register(ev('M',q,a,'Q',i))
-              for q in range(engine.number_of_states)]
-             for i in range(engine.log2_number_of_states)]
-            for a in [0,1]]
-writess = [[register(ev('M',q,a,'W'))
-             for q in range(engine.number_of_states)]
-            for a in [0,1]]
-movess = [[register(ev('M',q,a,'V'))
-             for q in range(engine.number_of_states)]
-            for a in [0,1]]
-GUI.add_machine(statess, writess, movess)
-
-for e in engine.examples:
-    E = engine.examples[e]
+def render_and_register_machine():
+    statess = [[[register(ev('M',q,a,'Q',i))
+                  for q in range(engine.number_of_states)]
+                 for i in range(engine.log2_number_of_states)]
+                for a in [0,1]]
+    writess = [[register(ev('M',q,a,'W'))
+                 for q in range(engine.number_of_states)]
+                for a in [0,1]]
+    movess = [[register(ev('M',q,a,'V'))
+                 for q in range(engine.number_of_states)]
+                for a in [0,1]]
+    GUI.add_machine(statess, writess, movess)
+def render_and_register_example(e,E):
     tape = [[register(ev('T',e,t,x))
              for t in range(E['time']+1)]
             for x in range(E['memory'])]
@@ -190,7 +199,56 @@ for e in engine.examples:
              for t in range(E['time']+1)]
             for i in range(engine.log2_number_of_states)]
     read,write,move=[None]*3
-    GUI.add_example(tape, positions, states, read, write, move)
+    GUI.add_example(tape, positions, states, read, write, move, e, lambda x, y:resize(e,E,x,y))
+
+def unregister_and_remove_example(e):
+# MEMORY LEAK
+#    pairs = [p for p in pairs if engine.identifier(p[-1]) is not None and engine.identifier(p[-1])[1] != e]
+#    global pairs
+    GUI.remove_example(e)
+    
+def apply_initial_constraints_to_machine():
+    for a in [0,1]:
+        for i in range(engine.log2_number_of_states-1):
+            add_starting_constraint(ev('M',1,a,'Q',i),-1)
+        add_starting_constraint(ev('M',1,a,'Q',engine.log2_number_of_states-1),1)
+        add_starting_constraint(ev('M',1,a,'V'),-1)
+        add_starting_constraint(ev('M',1,a,'W'),2*a-1)
+def apply_initial_constraints_to_example(e, E):
+    add_starting_constraint(ev('P',e,0,0),1)
+    for i in range(engine.log2_number_of_states-1):
+        add_starting_constraint(ev('Q',e,0,i),-1)
+        add_starting_constraint(ev('Q',e,E['time'],i),-1)
+    add_starting_constraint(ev('Q',e,0,engine.log2_number_of_states-1),-1)
+    add_starting_constraint(ev('Q',e,E['time'],engine.log2_number_of_states-1),1)
+
+
+
+def resize(e, E, axis, direction):
+    E[axis] += direction
+    engine.create_constraints()
+    unregister_and_remove_example(e)
+    render_and_register_example(e,E)
+    if axis == 'time':
+        print('time')
+    elif axis == 'memory':
+        print('memory')
+    else:
+        raise ValueError()
+
+    update_gui_vars(solve())
+    GUI.update()
+
+
+
+GUI.add_instructions_panel()
+GUI.add_timer_chart(timer_variable,['GUI', 'Engine', 'Other', 'A single print statement'])
+render_and_register_machine()
+for e in engine.examples:
+    E = engine.examples[e]
+    render_and_register_example(e,E)
+    apply_initial_constraints_to_example(e, E)
+apply_initial_constraints_to_machine()
 
 update_gui_vars(solve())
 GUI.update()

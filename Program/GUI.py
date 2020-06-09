@@ -232,15 +232,33 @@ class Grid_of_cells(tk.Frame):
             for cell in column:
                 cell.update()
 
-def add_example(tape, positions, states, read, write, move):
-    print('Warning: example read, write, and move are not implemented.')
+example_dict = {}
+def add_example(tape, positions, states, read, write, move, name, callback):
+
     if len(tape) != len(positions):
         raise IndexError()
     for i in range(len(tape)):
         if len(tape[i]) != len(positions[i]):
             raise IndexError()
-    Grid_of_cells(examples, tape, Grid_Style.TAPE, positions).grid(row=0,column=len(examples.winfo_children()))
-    Grid_of_cells(examples, states, Grid_Style.STATE).grid(row=0,column=len(examples.winfo_children()))
+    
+    column = 0
+    while examples.grid_slaves(0,column):
+        column+=1
+
+    f = tk.Frame(examples, bg='grey')
+    example_dict[name] = f    
+    f.grid(row=0,column=column)
+    Grid_of_cells(f, tape, Grid_Style.TAPE, positions).grid(row=0,column=0)
+    Grid_of_cells(f, states, Grid_Style.STATE).grid(row=0,column=1)
+
+    tk.Button(f, text='/\\   Less time   /\\', bg='grey',command=lambda: callback('time',-1)).grid(row=1,column=0,columnspan=2,sticky='ew')
+    tk.Button(f, text='\\/   More time   \\/', bg='grey',command=lambda: callback('time',1)).grid(row=2,column=0,columnspan=2,sticky='ew')
+    tk.Button(f, text='<\n\nLess\n\ntime\n\n<', wraplength=1, bg='grey',command=lambda: callback('memory',-1)).grid(row=0,column=3,sticky='ns')
+    tk.Button(f, text='>\n\nMore\n\ntime\n\n>', wraplength=1, bg='grey',command=lambda: callback('memory',1)).grid(row=0,column=4,sticky='ns')
+
+def remove_example(name):
+    example_dict[name].destroy()
+    del example_dict[name]
 
 def add_machine(statess, writess, movess):
     if len(black.winfo_children() + white.winfo_children()) > 20:
@@ -414,7 +432,7 @@ if __name__ == '__main__':
         return [[tk.IntVar(root,random_magnitude()*(1 if pos[y]==x else -1)) for y in range(height)] for x in range(width)]
 
 
-    add_example(random(5,7), rpositions(5,7), random(3,7), None, None, None)
+    add_example(random(5,7), rpositions(5,7), random(3,7), None, None, None,print)
     add_machine((random(3,8),random(3,8)), (random(1,8)[0],random(1,8)[0]), (random(1,8)[0],random(1,8)[0]))
     add_solution_selectors(*[print]*4)
     add_instructions_panel()
