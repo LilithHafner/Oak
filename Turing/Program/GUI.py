@@ -33,7 +33,7 @@ root.title('Oak   |   Turing Machine Synthesis')
 frame = tk.Frame(root, bg='grey')
 examples = tk.Frame(frame, bg='grey')
 tk.Label(frame,text='Examples',bg='grey',font=font.Font(size=20)).grid(row=0,column=1,columnspan=4)
-examples.grid(row=1,column=1,columnspan=4,padx=30)
+examples.grid(row=1,column=1,columnspan=4,padx=20)
 tk.Label(frame,text='Transition Table',bg='grey',font=font.Font(size=20)).grid(row=2,column=1,columnspan=2,pady=(10,0))
 black = tk.Frame(frame, bg='black')
 black.grid(row=3,column=1,rowspan=4,padx=10,pady=(0,10))
@@ -239,7 +239,7 @@ def add_example(tape, positions, states, read, write, move):
     for i in range(len(tape)):
         if len(tape[i]) != len(positions[i]):
             raise IndexError()
-    Grid_of_cells(examples, tape, Grid_Style.TAPE, positions).grid(row=0,column=len(examples.winfo_children()))
+    Grid_of_cells(examples, tape, Grid_Style.TAPE, positions).grid(row=0,column=len(examples.winfo_children()),padx=(9,2))
     Grid_of_cells(examples, states, Grid_Style.STATE).grid(row=0,column=len(examples.winfo_children()))
 
 def add_machine(statess, writess, movess):
@@ -256,15 +256,15 @@ class Multi_bar_chart(tk.Canvas):
         super().__init__(root, bg='grey',highlightthickness=0)
         bars = len(names)
         spacing = 0
-        margin = 4
-        bar_width = 20
-        label_width = 20
-        width = label_width+margin*3-spacing+(bar_width+spacing)*bars
+        margin = 0
+        bar_width = 16
+        label_width = 16
+        width = label_width+margin*2+(bar_width+spacing)*bars
         self.configure(width = width)
 
         
         line_count = 7
-        xvals = [0] + [label_width+margin*2+(bar_width+spacing)*i
+        xvals = [0] + [label_width+margin+spacing+(bar_width+spacing)*i
                        for i in range(bars)]
         widths = [width] + [bar_width]*bars
         colors = ['white']+['black']*bars

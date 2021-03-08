@@ -58,15 +58,12 @@ def multi_equal(rest_of_conjunction, equalities_to_be_satisfied):
     return sum([equal(rest_of_conjunction, equality) for equality in equalities_to_be_satisfied], start=[])
 
 
-#Specification
-log2_number_of_states = 3 # log base 2 of the number of states (must be an integer)
+log2_number_of_states = 2 # log base 2 of the number of states (must be an integer)
 number_of_states = 2**log2_number_of_states # the number of states
-##examples = {'2->1':{'memory':3, 'time':6, 'input':[1,1], 'output':[1]},
-##            #'3->1':{'memory':5, 'time':10, 'input':[1,1,1], 'output':[1]},
-##            '4->2':{'memory':5, 'time':10, 'input':[1,1,1,1], 'output':[1,1]},
-##            #'5->2':{'memory':5, 'time':10, 'input':[1,1,1,1,1], 'output':[1,1]},
-##            '6->3':{'memory':7, 'time':15, 'input':[1,1,1,1,1,1], 'output':[1,1,1]}}
-examples = {'first':{'memory':10, 'time':12, 'input':[1,1,1,1,1,1,1,1], 'output':[0,1,1,1,1,1,1,1,1]}}
+examples = {'3x6':{'memory':3, 'time':6, 'input':[], 'output':[]},
+            '5x9':{'memory':4, 'time':9, 'input':[], 'output':[]},
+            '7x11':{'memory':6, 'time':12, 'input':[], 'output':[]},
+            '8x15':{'memory':8, 'time':15, 'input':[], 'output':[]}}
 
 
 
