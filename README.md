@@ -13,7 +13,8 @@ Turing Machine Synthesis based on a SAT solver
 
 **Setup:** 
 
-1. `$pip install pillow` 
-4. `$pip install pycosat`
-3. `$cd Turing/Program`
-4. `$python3 main.py`
+1. If your python does not come with these already installed, run `sudo yum install python-devel python3-tkinter python3-pillow-tk` or your package manager's equivalent
+2. `$pip install pillow`
+3. `$pip install pycosat`
+4. `$cd Turing/Program`
+5. `$python3 main.py`
